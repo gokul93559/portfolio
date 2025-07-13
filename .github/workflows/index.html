@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 80px;
+      font-size: 16px;
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      transition: .3s ease;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      scroll-behavior: smooth;
+      transition: background 0.3s, color 0.3s;
+      cursor: flex;
+      background-color: var(--background);
+      color: var(--text-color);
+      cursor: none;
+    }
+
+
+
+
+    :root {
+      --primary: #f39c12;
+      --background: #f5f7fa;
+      --text-color: #333;
+    }
+
+    body.dark-mode {
+      --primary: #f39c12;
+      --background: #121212;
+      --text-color: #f1f1f1;
+    }
+
+    #scrollToTopBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 45px;
+      height: 45px;
+      background-color: orange;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+      z-index: 1000;
+      box-shadow: 0 0 15px rgba(255, 165, 0, 0.5);
+      transition: background-color 0.3s, transform 0.3s;
+    }
+
+    #scrollToTopBtn:hover {
+      background-color: darkorange;
+      transform: scale(1.1);
+    }
+
+    body.dark-mode #scrollToTopBtn {
+      background-color: #f39c12;
+      color: #121212;
+    }
+
+    body.dark-mode #scrollToTopBtn:hover {
+      background-color: #e67e22;
+      transform: scale(1.1);
+    }
+
+    #scrollToTopBtn:active {
+      transform: scale(0.9);
+    }
+
+    body.dark-mode {
+      background-color: #121212;
+      color: #f1f1f1;
+    }
+
+    body.dark-mode nav {
+      background: #1e1e1e;
+      color: #f1f1f1;
+    }
+
+    body.dark-mode .section-title {
+      color: #f39c12;
+    }
+
+    body.dark-mode .portfolio-item {
+      background: #1e1e1e;
+      color: #f1f1f1;
+    }
+
+    body.dark-mode .portfolio-item:hover {
+      background: #333;
+    }
+
+    body.dark-mode .btn {
+      background: #f39c12;
+      color: #121212;
+    }
+
+    body.dark-mode .btn:hover {
+      background: #e67e22;
+    }
+
+    body.dark-mode .nav-links li a {
+      color: #f1f1f1;
+    }
+
+    body.dark-mode .nav-links li a:hover,
+    body.dark-mode .nav-links li a:active {
+      color: #f39c12;
+    }
+
+    body.dark-mode footer {
+      background: #1e1e1e;
+      color: #f1f1f1;
+    }
+
+    body.dark-mode .contact-form input,
+    body.dark-mode .contact-form textarea {
+      background: #333;
+      color: #f1f1f1;
+      border: 1px solid #555;
+    }
+
+    body.dark-mode .contact-form input::placeholder,
+    body.dark-mode .contact-form textarea::placeholder {
+      color: #aaa;
+    }
+
+    body.dark-mode .toggle-mode {
+      color: #f1f1f1;
+    }
+
+    body.dark-mode .toggle-mode:hover {
+      color: #f39c12;
+    }
+
+    body.dark-mode .social-icons a {
+      color: #f1f1f1;
+    }
+
+    body.dark-mode .social-icons a:hover {
+      color: #f39c12;
+    }
+
+    body.dark-mode .nav-links li a:active {
+      color: #f39c12;
+    }
+
+    body.dark-mode .portfolio-item h3 {
+      color: #f39c12;
+    }
+
+    body.dark-mode .portfolio-item p {
+      color: #f1f1f1;
+    }
+
+    body.dark-mode .portfolio-item a {
+      background: #f39c12;
+      color: #121212;
+    }
+
+    body.dark-mode .portfolio-item a:hover {
+      background: #e67e22;
+    }
+
+    .cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      z-index: 9999;
+      mix-blend-mode: lighten;
+      cursor: none;
+    }
+
+    /* LIGHT MODE – Normal appearance */
+    body:not(.dark-mode) .cursor {
+      background: radial-gradient(circle, #ffcc00, #ff8800);
+      box-shadow: 0 0 12px #ffd700, 0 0 24px #ffaa00, 0 0 36px #ffcc00;
+      animation: cursorPulse 1.5s infinite ease-in-out, cursorGlowShift 6s infinite alternate;
+      opacity: 1;
+    }
+
+    /* DARK MODE – Hidden by default */
+    body.dark-mode .cursor {
+      background: transparent;
+      box-shadow: none;
+      opacity: 0;
+    }
+
+    /* DARK MODE – Show on buttons, nav, images */
+    body.dark-mode button:hover~.cursor,
+    body.dark-mode .btn:hover~.cursor,
+    body.dark-mode nav:hover~.cursor,
+    body.dark-mode .profile-photo:hover~.cursor,
+    body.dark-mode a:hover~.cursor {
+      background: radial-gradient(circle, #ffcc00, #ff8800);
+      box-shadow: 0 0 12px #ffd700, 0 0 24px #ffaa00, 0 0 36px #ffcc00;
+      animation: cursorPulse 1.5s infinite ease-in-out, cursorGlowShift 6s infinite alternate;
+      opacity: 1;
+    }
+
+    /* Cursor scaling on hover if needed */
+    body.dark-mode button:hover~.cursor,
+    body.dark-mode .btn:hover~.cursor,
+    body.dark-mode nav:hover~.cursor,
+    body.dark-mode .profile-photo:hover~.cursor,
+    body.dark-mode a:hover~.cursor {
+      transform: translate(-50%, -50%) scale(1.15);
+    }
+
+    /* Animations */
+    @keyframes cursorPulse {
+
+      0%,
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      50% {
+        transform: translate(-50%, -50%) scale(1.15);
+      }
+    }
+
+    @keyframes cursorGlowShift {
+      0% {
+        box-shadow: 0 0 10px #ffe066, 0 0 20px #ffaf40, 0 0 30px #ffc300;
+      }
+
+      100% {
+        box-shadow: 0 0 15px #ffcc00, 0 0 25px #ffaa00, 0 0 40px #ff8800;
+      }
+    }
+
+
+    .cursor .btn {
+      background-color: orange;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 1rem;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+      position: relative;
+      box-shadow: 0 0 20px #ffff00, 0 0 30px #ffaa00, 0 0 50px #ffcc00;
+    }
+
+    .sparkle {
+      position: fixed;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: white;
+      opacity: 0.7;
+      pointer-events: none;
+      z-index: 9998;
+      animation: fadeOut 0.8s ease-out forwards;
+      cursor: none;
+      background: radial-gradient(circle, #ffcc00, #ff8800);
+      box-shadow: 0 0 10px #ffd700, 0 0 20px #ffaa00, 0 0 30px #ffcc00;
+    }
+
+    body.dark-mode .sparkle {
+      background: #f39c12;
+      opacity: 0.9;
+      animation: fadeOut 0.8s ease-out forwards;
+    }
+
+    body.dark-mode .sparkle:hover {
+      background: #f39c12;
+      opacity: 0.9;
+      animation: fadeOut 0.8s ease-out forwards;
+      transition: .4s;
+      transform: scale(1.05);
+      background-color: darkorange;
+    }
+
+    body.dark-mode .sparkle::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffcc00, #ff8800);
+      box-shadow: 0 0 10px #ffd700, 0 0 20px #ffaa00, 0 0 30px #ffcc00;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      animation: pulse 1s infinite ease-in-out;
+    }
+
+    .sparkle .btn {
+      background-color: orange;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 1rem;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+      position: relative;
+    }
+
+    .sparkle .btn:hover {
+      background-color: darkorange;
+      animation: pulse-glow 5s infinite;
+      box-shadow: 0 0 20px rgba(255, 165, 0, 0.8);
+      transition: .4s;
+    }
+
+    @keyframes fadeOut {
+      0% {
+        opacity: 0.7;
+        transform: scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(0.5) translateY(-10px);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    body {
+      font-family: sans-serif;
+      background-color: #f0f0f0;
+      color: #111;
+      transition: background-color 0.4s ease;
+      padding-top: 90px;
+      /* Push content below navbar */
+    }
+
+    .dark-mode {
+      background-color: #000;
+      color: #fff;
+    }
+
+    nav.navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #111;
+      color: white;
+      padding: 15px 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      z-index: 999;
+      border-radius: 0 0 16px 16px;
+      transition: background-color 0.3s, box-shadow 0.3s ease;
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    .extra-items {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toggle-mode {
+      background: none;
+      border: 2px solid white;
+      border-radius: 50%;
+      font-size: 22px;
+      color: white;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      transition: transform 0.3s, background 0.3s;
+    }
+
+    .toggle-mode:hover {
+      transform: scale(1.1);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .social-icons a {
+      font-size: 22px;
+      text-decoration: none;
+      margin-left: 8px;
+      color: white;
+      transition: transform 0.2s ease, color 0.3s;
+    }
+
+    .social-icons a:hover {
+      transform: scale(1.2);
+      color: #ffa500;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      gap: 5px;
+      margin-left: 15px;
+    }
+
+    .hamburger span {
+      width: 26px;
+      height: 3px;
+      background: white;
+      border-radius: 3px;
+      transition: all 0.4s ease;
+    }
+
+    .hamburger.active span:nth-child(1) {
+      transform: translateY(8px) rotate(45deg);
+    }
+
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+      transform: translateY(-8px) rotate(-45deg);
+    }
+
+
+    .nav-content {
+      display: none;
+      position: absolute;
+      top: 80px;
+      right: 25px;
+      background: #242424;
+      border-radius: 12px;
+      padding: 20px;
+      flex-direction: column;
+      gap: 15px;
+      color: white;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    body.dark-mode .nav-content {
+      background: rgb(0, 0, 0);
+    }
+
+    .nav-content.active {
+      display: flex;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 19px;
+    }
+
+    .nav-links li a {
+      color: white;
+      text-decoration: none;
+      font-size: 20px;
+      transition: color 0.3s;
+    }
+
+    .nav-links li a:hover {
+      color: orange;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-15px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hamburger {
+        display: flex;
+      }
+
+      .nav-links-desktop {
+        display: none;
+      }
+
+      .profile-photo {
+        align-items: center;
+        margin-left: 100px;
+      }
+    }
+
+
+    .content {
+      padding: 40px 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .section {
+      margin-bottom: 4rem;
+      padding: 20px;
+    }
+
+    .section h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .section p {
+      line-height: 30px;
+      margin-bottom: 20px;
+      color: #555;
+    }
+
+    .section p b {
+      color: black;
+    }
+
+    body.dark-mode .section p {
+      line-height: 30px;
+      color: #f1f1f1;
+    }
+
+    body.dark-mode .section p b {
+      color: #e0e0e0;
+    }
+
+    @media (max-width: 768px) {
+      .section p {
+        line-height: 35px;
+        color: black;
+      }
+
+      .portfolio-item h3 {
+        font-size: 25px;
+        color: black;
+        font-weight: bold;
+      }
+
+      .portfolio-item p {
+        font-size: 17px;
+        color: black;
+        line-height: 25px;
+      }
+
+      .portfolio-item a {
+        font-size: 14px;
+        color: black;
+      }
+
+      .portfolio-item:hover {
+        background: #f5f7fa;
+      }
+
+      body.dark-mode .section p {
+        line-height: 35px;
+        color: #f1f1f1;
+      }
+      .profile-photo {
+        margin-left: 50px
+      }
+    }
+
+    /* Intro Section */
+    .intro {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+
+    .profile-photo {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid orange;
+      animation: pulse-glow 2s infinite;
+      box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+      grid-auto-flow: column;
+    }
+
+    .profile-photo:hover {
+      border: 4px solid #f39c12;
+      animation: pulse-glow 5s infinite;
+      box-shadow: 0 0 20px rgba(255, 165, 0, 1),
+        0 0 30px rgba(255, 140, 0, 0.8);
+      transition: .4s;
+      transform: scale(1.05);
+    }
+
+    body.dark-mode .profile-photo {
+      border: 3px solid #f39c12;
+      box-shadow: 0 0 10px rgba(255, 165, 0, 0.8);
+    }
+
+    body.dark-mode .profile-photo:hover {
+      border: 4px solid #f39c12;
+      animation: pulse-glow 5s infinite;
+      box-shadow: 0 0 20px rgba(255, 165, 0, 1),
+        0 0 30px rgba(255, 140, 0, 0.8);
+      transition: .4s;
+    }
+
+    .intro div {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .intro h1 {
+      font-size: 2.5rem;
+      color: orange;
+    }
+
+    .typing {
+      color: green;
+      font-weight: bold;
+      font-size: 1.3rem;
+      min-height: 1.5rem;
+    }
+
+    .typing::after {
+      content: "|";
+      animation: blink 1s step-start infinite;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .btn {
+      background-color: orange;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 1rem;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 0 10px rgb(255, 166, 2);
+      margin-left: 10px;
+    }
+
+    .btn:hover {
+      background-color: darkorange;
+      animation: pulse 5s infinite;
+      box-shadow: 0 0 20px rgba(255, 165, 0, 1),
+        0 0 30px rgba(255, 140, 0, 0.8);
+      transform: scale(1.05);
+      transition: .7s;
+    }
+
+    .btn:focus {
+      outline: 2px dashed var(--primary);
+      outline-offset: 4px;
+    }
+
+    .btn.fancy {
+      background: linear-gradient(135deg, orange, #ff8c00);
+      background-size: 200% auto;
+      color: white;
+      font-weight: bold;
+      border-radius: 50px;
+      padding: 0.8rem 2rem;
+      transition: 0.5s;
+    }
+
+    .btn.fancy:hover {
+      background-position: right center;
+      color: #fff;
+      box-shadow: 0 0 15px #ffaa00;
+      transform: scale(1.05);
+    }
+
+
+    .card {
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 25px rgba(255, 165, 0, 0.3);
+    }
+
+    body.dark-mode .card {
+      background-color: #1e1e1e;
+      color: #f1f1f1;
+      box-shadow: 0 0 15px rgba(255, 165, 0, 0.05);
+    }
+
+    body.dark-mode .card:hover {
+      box-shadow: 0 10px 25px rgba(255, 165, 0, 0.3);
+    }
+
+    .section-title {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      border-left: 5px solid #f39c12;
+      padding-left: 15px;
+      position: relative;
+      font-weight: bold;
+    }
+
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 1px;
+      background: linear-gradient(180deg, orange, darkorange);
+      animation: gradientMove 2s infinite alternate;
+    }
+
+    @keyframes gradientMove {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      100% {
+        background-position: 100% 50%;
+      }
+    }
+
+
+    .section-title input {
+      width: 100%;
+      border: 1px solid #f39c12;
+      animation: pulse-glow 3s infinite;
+      box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+
+    }
+
+    .glass {
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    body.dark-mode .glass {
+      background-color: rgba(30, 30, 30, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+
+    .portfolio-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .portfolio-item {
+      background: rgb(246, 237, 237);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      cursor: pointer;
+      width: 250px;
+      box-shadow: 0 4px 10px rgb(255, 136, 0);
+      /* Bright yellow box-shadow */
+    }
+
+    body.dark-mode .portfolio-item {
+      background: #1e1e1e;
+    }
+
+    .portfolio-item:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 8px 15px rgba(255, 153, 0, 0.8);
+      /* Hover effect with brighter yellow */
+    }
+
+    .portfolio-image {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: #ebe1e1;
+      color: black;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgb(255, 140, 0);
+      /* Bright yellow box-shadow for popup */
+      z-index: 2000;
+      width: 90%;
+      max-width: 500px;
+      transition: 0.3s ease;
+    }
+
+    body.dark-mode .popup {
+      background-color: #1e1e1e;
+      color: #ccc;
+    }
+
+    .popup.active {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .popup-close {
+      background: red;
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      float: right;
+      cursor: pointer;
+    }
+
+    .popup h3 {
+      margin-bottom: 10px;
+    }
+
+    .popup a {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 12px 25px;
+      background-color: orange;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .popup a:hover {
+      background-color: #e69500;
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+      .portfolio-item {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
+
+    .contact-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 20px;
+      max-width: 1000px;
+      margin: 20px auto;
+    }
+
+    .contact-map {
+      height: 300px;
+      width: 100%;
+      max-width: 450px;
+      border-radius: 10px;
+      flex: 1 1 45%;
+      border: #000 1.5px solid;
+      overflow: hidden;
+    }
+
+    body.dark-mode .contact-map {
+      border: 1.5px solid rgb(255, 149, 0);
+    }
+
+
+    .contact-form {
+      flex: 1 1 45%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder {
+      color: #aaa;
+    }
+
+    .contact-form button {
+      background: #f39c12;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      width: 150px;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 0 10px rgb(246, 160, 2);
+    }
+
+    .contact-form button:hover {
+      background-color: darkorange;
+      animation: pulse 5s infinite;
+      box-shadow: 0 0 20px rgba(255, 165, 0, 1),
+        0 0 30px rgba(255, 140, 0, 0.8);
+      transform: scale(1.05);
+      transition: .7s;
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+      background: #fff;
+      color: #333;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      transition: border 0.3s ease;
+    }
+
+    .contact-form input:focus,
+    .contact-form textarea:focus {
+      border: 1px solid #f39c12;
+      outline: none;
+    }
+
+    @media (max-width: 768px) {
+
+      body:not(.dark-mode) .section p,
+      body:not(.dark-mode) .portfolio-item h3,
+      body:not(.dark-mode) .portfolio-item p,
+      body:not(.dark-mode) .portfolio-item a {
+        color: black;
+      }
+    }
+
+    .skill {
+      margin: 20px 0;
+    }
+
+    .skill h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .skill span {
+      font-size: 1.04rem;
+      font-weight: bold;
+      color: black;
+      margin-bottom: 10px;
+      /* Increased from 10px to 20px */
+      display: inline-block;
+      /* Ensure margin-bottom takes effect */
+    }
+
+
+    body.dark-mode .skill span {
+      color: #f1f1f1;
+    }
+
+    .progress-bar {
+      background-color: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+      height: 20px;
+      width: 100%;
+    }
+
+    .progress {
+      background-color: #f39c12;
+      height: 100%;
+      text-align: center;
+      line-height: 20px;
+      /* Center the text vertically */
+      color: white;
+      transition: width 0.3s ease;
+    }
+
+    body.dark-mode .progress-bar {
+      background-color: #333;
+      border-radius: 5px;
+      overflow: hidden;
+      height: 20px;
+      width: 100%;
+    }
+
+    body.dark-mode .progress {
+      background-color: #f39c12;
+      height: 100%;
+      line-height: 20px;
+      color: white;
+      transition: width 0.3s ease;
+    }
+
+
+    .leaflet-top.leaflet-left {
+      top: 210px;
+      /* Pushes it below your navbar */
+      overflow: hidden;
+      z-index: 1001;
+      align-items: right;
+
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="logo">Portfolio</div>
+
+    <div class="extra-items">
+      <button class="toggle-mode" onclick="toggleDarkMode()">🌓</button>
+      <span class="social-icons">
+        <a href="https://www.instagram.com/_smart_guye_/" target="_blank">📸</a>
+        <a href="https://www.facebook.com/profile.php?id=100057443852383" target="_blank">📘</a>
+        <a href="https://www.linkedin.com/in/gokul-prasath-372a1a291/" target="_blank">💼</a>
+      </span>
+    </div>
+
+    <div class="hamburger" id="hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div class="nav-content" id="navContent">
+      <ul class="nav-links" id="navMenu">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">Biography</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+
+  <div class="content">
+    <section id="home" class="section">
+      <div class="intro">
+        <img src="gokul.webp" alt="gokul's Photo" class="profile-photo" />
+        <div>
+          <h1>Hello, I'm Gokul prasath</h1>
+          <div class="typing"></div>
+          <p>I'm a Student at KSR college of Engineering and currently pursuing Computer Science
+            Engineering and I am passionate developer who blends creativity with code. I love building user-friendly
+            websites, writing stories, and capturing moments through photography.</p>
+          <a href="gokul_resume.pdf" class="btn" target="_blank">Download Resume</a>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="about" class="section">
+      <h2 class="section-title">Biography</h2>
+      <p>
+        I’m a passionate software developer focused on building clean, user-friendly digital experiences. With strengths
+        in both front-end development, I create platforms that are functional, intuitive, and visually engaging.
+
+        My recent projects include a cloth donation website connecting donors to communities in need an initiative that
+        reflects my commitment to using tech for social good.
+
+        Beyond coding, I explore photography and design (InDesign) bringing a creative eye to every project. <br>
+
+        <b>My Extracurricular Activity -  Cricket, Dance, Drawing and Photography.</b>
+      </p>
+    </section>
+
+
+    <!-- Place this new section right after the existing Portfolio section -->
+
+    <section id="projects" class="section">
+      <h2 class="section-title">Projects</h2>
+      <div class="portfolio-grid">
+        <!-- Portfolio Item 1 -->
+        <div class="portfolio-item" onclick="openPopup('popup1')">
+          <img src="decoder.jpg" alt="Dream Decoder" class="portfolio-image">
+          <h3>Gen AI-Powered Dream Decoder and Emotional Visualizer</h3>
+        </div>
+
+        <!-- Portfolio Item 2 -->
+        <div class="portfolio-item" onclick="openPopup('popup2')">
+          <img src="seed.jpg" alt="Agricultural AI" class="portfolio-image">
+          <h3>AI-powered solution for crops seeds</h3>
+        </div>
+
+        <!-- Portfolio Item 3 -->
+        <div class="portfolio-item" onclick="openPopup('popup3')">
+          <img src="trip.png" alt="UI/UX" class="portfolio-image">
+          <h3>UI/UX-Design Travel Planning App</h3>
+        </div>
+
+        <!-- Portfolio Item 4 -->
+        <div class="portfolio-item" onclick="openPopup('popup4')">
+          <img src="cosmatic.jpeg" alt="My Photography" class="portfolio-image">
+          <h3>Cosmatic Designer</h3>
+        </div>
+
+        <!-- Portfolio Item 5 -->
+        <div class="portfolio-item" onclick="openPopup('popup5')">
+          <img src="chatbox.webp" alt="Gen AI" class="portfolio-image">
+          <h3>Gen AI-Artificial Intelligence Chatbox</h3>
+        </div>
+
+        <!-- Portfolio Item 6 -->
+        <div class="portfolio-item" onclick="openPopup('popup6')">
+          <img src="grapic.jpg" alt="Eco-Plastic Innovators" class="portfolio-image">
+          <h3>UI/UX-Grapic Design</h3>
+        </div>
+
+        
+
+        <!-- Portfolio Item 10 -->
+        <div class="portfolio-item" onclick="openPopup('popup10')">
+          <img src="food.avif" alt="QuotesGenerator" class="portfolio-image">
+          <h3>Food Oderd And Delivery</h3>
+        </div>
+
+         <!-- Portfolio Item 11 -->
+         <div class="portfolio-item" onclick="openPopup('popup11')">
+          <img src="voice.jpg" alt="Mindvoice" class="portfolio-image">
+          <h3>Voicechanger And Mindvoice</h3>
+        </div>
+      </div>
+    </section>
+
+    
+
+    
+   
+
+    <section id="skills" class="section">
+      <h2 class="section-title">Skills Attained</h2>
+      <div class="skill">
+        <span>HTML & CSS</span>
+        <div class="progress-bar">
+          <div class="progress" style="width: 90%;">90%</div>
+        </div>
+      </div>
+      <div class="skill">
+        <span>JavaScript</span>
+        <div class="progress-bar">
+          <div class="progress" style="width: 80%;">80%</div>
+        </div>
+      </div>
+      <div class="skill">
+        <span>Java</span>
+        <div class="progress-bar">
+          <div class="progress" style="width: 70%;">70%</div>
+        </div>
+      </div>
+      <div class="skill">
+        <span>React</span>
+        <div class="progress-bar">
+          <div class="progress" style="width: 60%;">60%</div>
+        </div>
+      </div>
+      <div class="skill">
+        <span>Graphic Design (Canva)</span>
+        <div class="progress-bar">
+          <div class="progress" style="width: 85%;">85%</div>
+        </div>
+      </div>
+      <div class="skill">
+        <span>UI/UX Designer</span>
+        <div class="progress-bar">
+          <div class="progress" style="width: 75%;">75%</div>
+        </div>
+      </div>
+    </section>
+
+    <h2 class="section-title">Contact</h2>
+    <div id="contact" class="contact-container">
+      <div id="map" class="contact-map"></div>
+      <form id="contact-form" class="contact-form" onsubmit="return handleSubmit(event)">
+        <input type="text" id="name" placeholder="Your Name" required>
+        <input type="email" id="email" placeholder="Your Email" required>
+        <textarea id="message" rows="5" placeholder="Your Message" required></textarea>
+        <button type="submit" class="btn">Send Message</button>
+      </form>
+    </div>
+
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+      document.addEventListener("contextmenu",()=>{
+        event.preventDefault();
+      })
+      // Typing effect
+      const typingElement = document.querySelector(".typing");
+      const roles = ["Frontend Developer", "Video Editor", "Creative Designer", "DTP Designer", "UI/UX Designer"];
+      let index = 0;
+      let charIndex = 0;
+      let isDeleting = false;
+
+      function typeEffect() {
+        const currentRole = roles[index];
+        if (isDeleting) {
+          typingElement.textContent = currentRole.substring(0, charIndex--);
+          if (charIndex < 0) {
+            isDeleting = false;
+            index = (index + 1) % roles.length;
+          }
+        } else {
+          typingElement.textContent = currentRole.substring(0, charIndex++);
+          if (charIndex > currentRole.length) {
+            isDeleting = true;
+            setTimeout(typeEffect, 200);
+            return;
+          }
+        }
+        setTimeout(typeEffect, isDeleting ? 100 : 100);
+      }
+
+      typeEffect();
+      // Dark mode toggle
+      function toggleDarkMode() {
+        document.body.classList.toggle("dark-mode");
+      }
+
+      // Simple form handler
+      function handleSubmit(event) {
+        event.preventDefault();
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const message = document.getElementById("message").value;
+        alert(`Thank you ${name}! Your message has been received.`);
+        document.getElementById("contact-form").reset();
+      }
+
+      AOS.init({
+        duration: 1000,
+        once: true
+      });
+
+      const hamburger = document.getElementById('hamburger');
+      const navContent = document.getElementById('navContent');
+
+      hamburger.addEventListener('click', () => {
+        hamburger.classList.toggle('active');
+        navContent.classList.toggle('active');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!hamburger.contains(e.target) && !navContent.contains(e.target)) {
+          hamburger.classList.remove('active');
+          navContent.classList.remove('active');
+        }
+      });
+
+      function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+      }
+
+      const cursor = document.createElement('div');
+      cursor.classList.add('cursor');
+      document.body.appendChild(cursor);
+
+      document.addEventListener('mousemove', e => {
+        cursor.style.top = `${e.clientY}px`;
+        cursor.style.left = `${e.clientX}px`;
+
+        const sparkle = document.createElement('div');
+        sparkle.classList.add('sparkle');
+        sparkle.style.top = `${e.clientY + (Math.random() * 10 - 5)}px`;
+        sparkle.style.left = `${e.clientX + (Math.random() * 10 - 5)}px`;
+        document.body.appendChild(sparkle);
+
+        setTimeout(() => {
+          sparkle.remove();
+        }, 800);
+      });
+
+     
+      const gobiCoords = [11.4551, 77.4422]; // Gobichettipalayam coordinates
+const map = L.map('map').setView(gobiCoords, 15);
+
+// Load OpenStreetMap tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+// Add draggable marker
+const marker = L.marker(gobiCoords, { draggable: true }).addTo(map);
+
+marker.on('dragend', function () {
+  const pos = marker.getLatLng();
+  console.log("New location:", pos.lat, pos.lng);
+});
+
+function openPopup(id) {
+  document.getElementById(id).classList.add("active");
+}
+
+function closePopup(id) {
+  document.getElementById(id).classList.remove("active");
+}
+
+    </script>
+</body>
+</html>
